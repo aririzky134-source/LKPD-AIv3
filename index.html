@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LKPDAI - Generator Lembar Kerja Peserta Didik Pintar</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Blurmorphism & Dark Theme Styles */
+        body {
+            background: radial-gradient(circle at top left, #050b14, #0a192f, #020c1b);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(10, 25, 47, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card {
+            background: rgba(15, 32, 67, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(2, 12, 27, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.6);
+        }
+
+        /* Pulse glowing effects */
+        .glow-blue {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        /* LKPD Paper Print Preview (Simulated A4) */
+        .paper-preview {
+            background: #ffffff;
+            color: #1e293b;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 800px;
+            min-height: 1128px; /* Standard A4 Aspect Ratio */
+            padding: 2.5rem;
+            margin: 0 auto;
+            position: relative;
+            border-radius: 4px;
+        }
+
+        /* Printing Adjustments */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .paper-preview {
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: auto !important;
+                color: #000000 !important;
+                background: #ffffff !important;
+            }
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+        }
+        
+        /* Fast Animation Classes */
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-slide-up {
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="custom-scrollbar selection:bg-blue-600/30 selection:text-blue-200">
+
+    <!-- APP WRAPPER -->
+    <div id="app" class="min-h-screen flex flex-col">
+        
+        <!-- SECTION 1: LOGIN/ACCESS PORTAL -->
+        <div id="login-screen" class="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
+            <!-- Decorative Light Blobs -->
+            <div class="absolute w-[400px] h-[400px] bg-blue-900/20 rounded-full blur-[100px] -top-20 -left-20 pointer-events-none"></div>
+            <div class="absolute w-[300px] h-[300px] bg-indigo-950/30 rounded-full blur-[80px] -bottom-20 -right-20 pointer-events-none"></div>
+
+            <div class="w-full max-w-md glass-panel rounded-2xl p-8 relative z-10 animate-slide-up glow-blue">
+                <!-- Branding Header -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center p-3 bg-blue-600/10 rounded-xl border border-blue-500/20 mb-3">
+                        <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-white via-slate-100 to-blue-400 bg-clip-text text-transparent">LKPDAI Portal</h1>
+                    <p class="text-sm text-slate-400 mt-1">Platform Cerdas Pembuat Lembar Kerja Siswa untuk Guru Kreatif</p>
+                </div>
+
+                <!-- Form Login -->
+                <form id="login-form" class="space-y-5" onsubmit="handleLogin(event)">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5" for="user-name">Nama Lengkap</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                            </span>
+                            <input type="text" id="user-name" required placeholder="Contoh: Budi Santoso, S.Pd." class="w-full bg-slate-950/50 border border-slate-700/60 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5" for="user-email">Email Instansi / Pribadi</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            </span>
+                            <input type="email" id="user-email" required placeholder="budi.guru@sekolah.sch.id" class="w-full bg-slate-950/50 border border-slate-700/60 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5" for="access-code">Kode Akses Khusus</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                            </span>
+                            <input type="password" id="access-code" required placeholder="Masukkan kode akses LKPDAI26" class="w-full bg-slate-950/50 border border-slate-700/60 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <!-- Error Alert -->
+                    <div id="login-error" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-3"></div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-lg transition-all duration-200 transform active:scale-[0.98] focus:outline-none shadow-lg shadow-blue-500/20">
+                        Masuk ke Dashboard Guru
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SECTION 2: MAIN DASHBOARD (HIDDEN ON START) -->
+        <div id="main-dashboard" class="hidden flex-1 flex flex-col animate-fade-in no-print">
+            <!-- Navigation Header -->
+            <header class="glass-panel sticky top-0 z-30 border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-blue-600/20 rounded-lg border border-blue-500/30">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-lg font-bold tracking-tight text-white flex items-center">
+                            LKPD<span class="text-blue-500">AI</span>
+                            <span class="ml-2 text-[10px] bg-blue-600/20 border border-blue-500/40 text-blue-400 font-normal px-2 py-0.5 rounded-full">v3.0 PRO AI</span>
+                        </span>
+                        <p class="text-[10px] text-slate-400">Guru Kreatif, Siswa Aktif</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <!-- User Status Badge -->
+                    <div class="hidden sm:flex items-center space-x-2.5 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-300">
+                        <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <span>Halo, <strong id="display-user-name" class="text-blue-400">Guru</strong></span>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <button onclick="handleLogout()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent hover:border-slate-700/60 rounded-lg transition-all" title="Keluar Akun">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content Grid -->
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
+                
+                <!-- Left Panel: AI Generator, Form Editor & Premium AI Tools (Span 5) -->
+                <div class="lg:col-span-5 flex flex-col space-y-6">
+                    
+                    <!-- Tabs Panel for Generator Options -->
+                    <div class="glass-panel rounded-xl p-1 flex">
+                        <button id="tab-btn-ai" onclick="switchLeftTab('ai')" class="flex-1 flex items-center justify-center space-x-2 py-2.5 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span>AI Generator Otomatis</span>
+                        </button>
+                        <button id="tab-btn-manual" onclick="switchLeftTab('manual')" class="flex-1 flex items-center justify-center space-x-2 py-2.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 00-2 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>Editor Manual & Soal</span>
+                        </button>
+                    </div>
+
+                    <!-- TAB 1: AI GENERATOR PANEL -->
+                    <div id="panel-ai" class="glass-panel rounded-xl p-5 space-y-4 animate-fade-in">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h2 class="text-sm font-semibold text-slate-200">Asisten Pembuat LKPD Pintar</h2>
+                                <p class="text-xs text-slate-400 mt-1">Gunakan kecerdasan buatan untuk menyusun materi dan soal berkualitas tinggi dalam sekejap.</p>
+                            </div>
+                        </div>
+
+                        <!-- Prompt Input Area -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-medium text-slate-300">Tulis Konsep LKPD yang Diinginkan</label>
+                            <textarea id="ai-prompt" rows="5" class="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 custom-scrollbar" placeholder="Contoh: Buat LKPD Matematika tentang Luas Bangun Datar Segitiga untuk Kelas 5 SD Semester 2. Sertakan 3 soal pilihan ganda dan 2 soal esai yang bervariasi dengan tingkat kesulitan mudah sampai sedang. Berikan juga petunjuk belajar yang interaktif."></textarea>
+                        </div>
+
+                        <!-- Quick Suggestions / Templates -->
+                        <div class="space-y-2">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Inspirasi Cepat (Klik untuk menyalin)</span>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="useTemplate('Matematika Bangun Ruang Kelas 6 SD tentang Volume Prisma')" class="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700/80 text-slate-300 rounded px-2.5 py-1 transition-all text-left">
+                                    📐 Volume Prisma SD 6
+                                </button>
+                                <button onclick="useTemplate('IPA SMP Kelas 7 Sistem Tata Surya tentang Karakteristik Planet Terestrial')" class="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700/80 text-slate-300 rounded px-2.5 py-1 transition-all text-left">
+                                    🪐 Tata Surya SMP 7
+                                </button>
+                                <button onclick="useTemplate('Bahasa Inggris SMA Kelas 10 tentang Narrative Text fabel lokal')" class="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700/80 text-slate-300 rounded px-2.5 py-1 transition-all text-left">
+                                    📚 Narrative Text SMA 10
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <div class="pt-2">
+                            <button id="btn-generate" onclick="generateLKPDWithAI()" class="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-lg transition-all shadow-md shadow-blue-500/10 active:scale-[0.99]">
+                                <svg class="w-5 h-5 text-blue-200 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                                <span id="generate-btn-text">Rancang Menggunakan AI</span>
+                            </button>
+                        </div>
+
+                        <!-- Progress Bar & Status (Hidden by default) -->
+                        <div id="ai-loading-container" class="hidden space-y-2 p-3.5 bg-blue-950/40 border border-blue-900/30 rounded-lg">
+                            <div class="flex items-center justify-between text-xs text-blue-400 font-medium">
+                                <span id="ai-loading-status" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-3.5 w-3.5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    AI sedang menyusun draf...
+                                </span>
+                                <span id="ai-loading-timer">0s</span>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                                <div id="ai-loading-bar" class="bg-blue-500 h-1.5 rounded-full w-[10%]" style="transition: width 0.4s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Output Information -->
+                        <div class="text-[10px] text-slate-500 leading-relaxed text-center">
+                            AI secara pintar akan membagi struktur menjadi: Informasi Umum, Petunjuk, Ringkasan Materi, Soal PG beserta opsi, dan Soal Esai. Draf dapat langsung diedit di tab editor manual!
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: MANUAL FORM EDITOR PANEL (HIDDEN BY DEFAULT) -->
+                    <div id="panel-manual" class="hidden glass-panel rounded-xl p-5 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar animate-fade-in">
+                        <div class="border-b border-slate-800 pb-3">
+                            <h2 class="text-sm font-semibold text-slate-200">Editor Kelola Lembar Kerja</h2>
+                            <p class="text-xs text-slate-400 mt-1">Ubah draf otomatis atau buat LKPD manual dengan detail formulir di bawah ini.</p>
+                        </div>
+
+                        <!-- Form Section 1: Identitas -->
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">1. Identitas LKPD</h3>
+                            <div class="space-y-2.5">
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Judul Lembar Kerja</label>
+                                    <input type="text" id="form-judul" oninput="updateLKPDFromForm()" class="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    <div>
+                                        <label class="block text-[11px] text-slate-400 mb-1">Mata Pelajaran</label>
+                                        <input type="text" id="form-mapel" oninput="updateLKPDFromForm()" class="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] text-slate-400 mb-1">Kelas & Semester</label>
+                                        <input type="text" id="form-kelas" oninput="updateLKPDFromForm()" class="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    <div>
+                                        <label class="block text-[11px] text-slate-400 mb-1">Alokasi Waktu</label>
+                                        <input type="text" id="form-waktu" oninput="updateLKPDFromForm()" class="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] text-slate-400 mb-1">Tahun Ajaran</label>
+                                        <input type="text" id="form-tahun" oninput="updateLKPDFromForm()" class="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Section 2: Kompetensi & Petunjuk -->
+                        <div class="space-y-3 pt-2">
+                            <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">2. Pembelajaran & Petunjuk</h3>
+                            <div class="space-y-2.5">
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Tujuan Pembelajaran</label>
+                                    <textarea id="form-tujuan" rows="3" oninput="updateLKPDFromForm()" class="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 custom-scrollbar" placeholder="Siswa diharapkan dapat..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Ringkasan Materi Pendukung</label>
+                                    <textarea id="form-materi" rows="4" oninput="updateLKPDFromForm()" class="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 custom-scrollbar" placeholder="Rangkuman materi pelajaran yang relevan..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Petunjuk Belajar</label>
+                                    <textarea id="form-petunjuk" rows="3" oninput="updateLKPDFromForm()" class="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 custom-scrollbar" placeholder="1. Bacalah petunjuk secara saksama..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Section 3: Soal & Penugasan -->
+                        <div class="space-y-3 pt-2">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">3. Daftar Soal Latihan</h3>
+                                <div class="flex gap-1.5">
+                                    <button onclick="addQuestion('pg')" class="text-[10px] bg-indigo-900/40 border border-indigo-700/50 hover:bg-indigo-800 text-indigo-300 rounded px-2 py-1 font-medium transition-all">+ Pilihan Ganda</button>
+                                    <button onclick="addQuestion('esai')" class="text-[10px] bg-blue-900/40 border border-blue-700/50 hover:bg-blue-800 text-blue-300 rounded px-2 py-1 font-medium transition-all">+ Esai</button>
+                                </div>
+                            </div>
+
+                            <!-- List of dynamically loaded questions -->
+                            <div id="questions-list" class="space-y-4">
+                                <!-- Question elements will render here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADVANCED AI TOOLS PANEL (KOTAK PERALATAN AI ASISTEN) -->
+                    <div class="glass-panel rounded-xl p-4 space-y-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">✨ Peralatan AI Khusus Guru</span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-2">
+                            <button onclick="generateAnswersWithAI()" class="w-full flex items-center justify-between text-left text-xs bg-indigo-900/40 hover:bg-indigo-800/60 border border-indigo-700/30 text-indigo-200 rounded-lg p-2.5 transition-all">
+                                <span class="flex items-center gap-2">
+                                    🔑 <span>✨ Buat Kunci & Pembahasan</span>
+                                </span>
+                                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                            
+                            <button onclick="openDifferentiateModal()" class="w-full flex items-center justify-between text-left text-xs bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/30 text-blue-200 rounded-lg p-2.5 transition-all">
+                                <span class="flex items-center gap-2">
+                                    ⚖️ <span>✨ Sesuaikan Kompleksitas (Diferensiasi)</span>
+                                </span>
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+
+                            <button onclick="generateMediaRecommendations()" class="w-full flex items-center justify-between text-left text-xs bg-emerald-900/40 hover:bg-emerald-800/60 border border-emerald-700/30 text-emerald-200 rounded-lg p-2.5 transition-all">
+                                <span class="flex items-center gap-2">
+                                    🎯 <span>✨ Rekomendasi Media & Aktivitas Seru</span>
+                                </span>
+                                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Reset & Preset Quick Actions -->
+                    <div class="glass-panel rounded-xl p-4 flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-medium">Cadangan Dokumen:</span>
+                        <div class="flex gap-2">
+                            <button onclick="loadSampleDraft()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700 transition-all">Muat Contoh</button>
+                            <button onclick="clearCurrentLKPD()" class="text-xs bg-red-950/20 hover:bg-red-950/60 text-red-400 px-3 py-1.5 rounded border border-red-900/30 transition-all">Kosongkan</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Live Document Preview & Actions (Span 7) -->
+                <div class="lg:col-span-7 flex flex-col space-y-4">
+                    
+                    <!-- Preview Tool Bar -->
+                    <div class="glass-panel rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-ping"></div>
+                            <h2 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Pratinjau Hasil Cetak (Kertas A4)</h2>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <!-- Download Data -->
+                            <button onclick="exportJSON()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg transition-all" title="Ekspor Data JSON">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </button>
+                            
+                            <!-- Upload Data -->
+                            <button onclick="triggerUploadJSON()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg transition-all" title="Impor Data JSON">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                </svg>
+                            </button>
+                            <input type="file" id="json-file-input" class="hidden" accept=".json" onchange="importJSON(event)">
+
+                            <!-- Copy All Text -->
+                            <button onclick="copyToClipboard()" class="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg border border-slate-700 transition-all">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                                <span>Salin Teks</span>
+                            </button>
+
+                            <!-- Print / Save to PDF Button -->
+                            <button onclick="printDocument()" class="flex items-center gap-2 text-xs bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2 rounded-lg font-medium transition-all shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-[0.98]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-3a2 2 0 00-2-2H9a2 2 0 00-2 2v3a2 2 0 002 2zm0 0v-9a2 2 0 012-2h2a2 2 0 012 2v9m-4 0h4" />
+                                </svg>
+                                <span>Cetak & Download PDF</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Preview Container (Interactive Mock A4) -->
+                    <div class="flex-1 max-h-[85vh] overflow-y-auto rounded-xl custom-scrollbar border border-slate-800 bg-slate-950/40 p-4">
+                        
+                        <!-- PAPER START -->
+                        <div id="lkpd-preview-page" class="paper-preview">
+                            
+                            <!-- Header Bagian Atas / KOP LKPD -->
+                            <div class="border-b-4 border-double border-slate-900 pb-3 mb-4">
+                                <div class="text-center">
+                                    <h1 class="text-lg font-extrabold uppercase tracking-wide">LEMBAR KERJA PESERTA DIDIK (LKPD)</h1>
+                                    <p id="view-judul" class="text-base font-bold text-slate-800 mt-1 uppercase">JUDUL LEMBAR KERJA</p>
+                                </div>
+                            </div>
+
+                            <!-- Identitas Siswa -->
+                            <div class="grid grid-cols-2 gap-4 mb-4 text-xs bg-slate-50 border border-slate-300 rounded p-3">
+                                <table class="w-full">
+                                    <tr class="align-top">
+                                        <td class="font-semibold py-1 w-24">Mata Pelajaran</td>
+                                        <td class="py-1 px-1">:</td>
+                                        <td id="view-mapel" class="py-1 text-slate-700">Ilmu Pengetahuan Alam</td>
+                                    </tr>
+                                    <tr class="align-top">
+                                        <td class="font-semibold py-1">Kelas/Sem.</td>
+                                        <td class="py-1 px-1">:</td>
+                                        <td id="view-kelas" class="py-1 text-slate-700">VII / Ganjil</td>
+                                    </tr>
+                                    <tr class="align-top">
+                                        <td class="font-semibold py-1">Alokasi Waktu</td>
+                                        <td class="py-1 px-1">:</td>
+                                        <td id="view-waktu" class="py-1 text-slate-700">2 x 40 Menit</td>
+                                    </tr>
+                                </table>
+                                <table class="w-full">
+                                    <tr class="align-top">
+                                        <td class="font-semibold py-1 w-20">Kelompok/Nama</td>
+                                        <td class="py-1 px-1">:</td>
+                                        <td class="py-1 border-b border-dashed border-slate-400 text-slate-400">...............................................</td>
+                                    </tr>
+                                    <tr class="align-top">
+                                        <td class="font-semibold py-1">Hari, Tanggal</td>
+                                        <td class="py-1 px-1">:</td>
+                                        <td class="py-1 border-b border-dashed border-slate-400 text-slate-400">...............................................</td>
+                                    </tr>
+                                    <tr class="align-top">
+                                        <td class="font-semibold py-1">Tahun Ajaran</td>
+                                        <td class="py-1 px-1">:</td>
+                                        <td id="view-tahun" class="py-1 text-slate-700">2026/2027</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- 1. Tujuan Pembelajaran -->
+                            <div class="mb-5">
+                                <div class="flex items-center gap-1.5 border-b border-slate-300 pb-1 mb-2">
+                                    <div class="w-1.5 h-4 bg-slate-800"></div>
+                                    <h2 class="text-xs font-extrabold uppercase tracking-wide">I. TUJUAN PEMBELAJARAN</h2>
+                                </div>
+                                <div id="view-tujuan" class="text-xs leading-relaxed text-slate-700 whitespace-pre-line pl-2">
+                                    Siswa dapat mendeskripsikan secara jelas tujuan dari aktivitas belajar ini.
+                                </div>
+                            </div>
+
+                            <!-- 2. Petunjuk Belajar -->
+                            <div class="mb-5">
+                                <div class="flex items-center gap-1.5 border-b border-slate-300 pb-1 mb-2">
+                                    <div class="w-1.5 h-4 bg-slate-800"></div>
+                                    <h2 class="text-xs font-extrabold uppercase tracking-wide">II. PETUNJUK BELAJAR</h2>
+                                </div>
+                                <div id="view-petunjuk" class="text-xs leading-relaxed text-slate-700 whitespace-pre-line pl-2">
+                                    1. Baca kembali ringkasan materi secara teliti.
+                                    2. Selesaikan soal-soal latihan secara mandiri maupun berkelompok.
+                                </div>
+                            </div>
+
+                            <!-- 3. Ringkasan Materi -->
+                            <div class="mb-5">
+                                <div class="flex items-center gap-1.5 border-b border-slate-300 pb-1 mb-2">
+                                    <div class="w-1.5 h-4 bg-slate-800"></div>
+                                    <h2 class="text-xs font-extrabold uppercase tracking-wide">III. RINGKASAN MATERI PENDUKUNG</h2>
+                                </div>
+                                <div id="view-materi" class="text-xs leading-relaxed text-slate-700 whitespace-pre-line text-justify pl-2">
+                                    Teks rangkuman materi lengkap pendukung pelajaran.
+                                </div>
+                            </div>
+
+                            <!-- 4. Latihan / Tugas Soal-soal -->
+                            <div class="mb-5">
+                                <div class="flex items-center gap-1.5 border-b border-slate-300 pb-1 mb-3">
+                                    <div class="w-1.5 h-4 bg-slate-800"></div>
+                                    <h2 class="text-xs font-extrabold uppercase tracking-wide">IV. TUGAS & LATIHAN SOAL</h2>
+                                </div>
+
+                                <!-- Dynamic Preview Questions Area -->
+                                <div id="view-questions" class="space-y-4 pl-2 text-xs">
+                                    <!-- Questions are loaded here -->
+                                </div>
+                            </div>
+
+                            <!-- Footnote / Footer Halaman -->
+                            <div class="mt-8 pt-4 border-t border-slate-300 flex items-center justify-between text-[10px] text-slate-500">
+                                <span>Dibuat Otomatis Menggunakan LKPDAI-PRO</span>
+                                <span id="view-footer-user">Oleh: Guru Kreatif, S.Pd.</span>
+                            </div>
+
+                        </div>
+                        <!-- PAPER END -->
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- DIALOG/MODALS AREA -->
+
+        <!-- 1. AI Result Modal (Kunci Jawaban / Rekomendasi Media) -->
+        <div id="ai-output-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="w-full max-w-3xl glass-panel rounded-2xl overflow-hidden shadow-2xl animate-slide-up">
+                <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                    <h3 id="modal-output-title" class="text-sm font-bold text-slate-200 uppercase tracking-wider">Hasil Dokumen AI</h3>
+                    <button onclick="closeOutputModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto max-h-[70vh] custom-scrollbar text-xs leading-relaxed text-slate-300 whitespace-pre-line bg-slate-950/60">
+                    <div id="modal-output-body" class="space-y-4">
+                        <!-- Content injected here -->
+                    </div>
+                </div>
+                <div class="px-6 py-3 border-t border-slate-800 bg-slate-900/60 flex items-center justify-end gap-3">
+                    <button onclick="copyModalContent()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg border border-slate-700 transition-all flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                        <span>Salin Hasil</span>
+                    </button>
+                    <button onclick="closeOutputModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-all">
+                        <span>Tutup Selesai</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. AI Differentiate Config Modal -->
+        <div id="ai-differentiate-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="w-full max-w-md glass-panel rounded-2xl overflow-hidden shadow-2xl animate-slide-up">
+                <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">✨ Diferensiasi Pembelajaran AI</h3>
+                    <button onclick="closeDifferentiateModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <p class="text-xs text-slate-400">Pilih tingkat kesulitan kognitif baru untuk memetakan kembali draf materi & soal LKPD secara otomatis tanpa merubah topik utama:</p>
+                    
+                    <div class="space-y-2.5">
+                        <label class="flex items-start gap-3 p-3 bg-slate-900/60 border border-slate-800 rounded-lg cursor-pointer hover:border-emerald-500/50 transition-all">
+                            <input type="radio" name="diff-level" value="remedial" checked class="mt-1">
+                            <div>
+                                <span class="text-xs font-bold text-emerald-400 block">Sederhana / Remedial</span>
+                                <span class="text-[10px] text-slate-400">Kalimat materi lebih ringkas, istilah sulit dikurangi, bantuan pengerjaan diperbanyak, tingkat soal diturunkan ke pemahaman dasar (C1-C2).</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 p-3 bg-slate-900/60 border border-slate-800 rounded-lg cursor-pointer hover:border-indigo-500/50 transition-all">
+                            <input type="radio" name="diff-level" value="pengayaan" class="mt-1">
+                            <div>
+                                <span class="text-xs font-bold text-indigo-400 block">Tinggi / Pengayaan (HOTS)</span>
+                                <span class="text-[10px] text-slate-400">Materi diperluas dengan studi kasus praktis, soal latihan diarahkan ke penalaran analisis kritis tinggi (HOTS, C4-C6).</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="px-6 py-3 border-t border-slate-800 bg-slate-900/60 flex items-center justify-end gap-3">
+                    <button onclick="closeDifferentiateModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg transition-all">Batal</button>
+                    <button onclick="applyDifferentiate()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-all">✨ Mulai Adaptasi AI</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRINT COMPONENT -->
+        <div id="print-sheet" class="hidden print-only"></div>
+
+        <!-- Custom Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-12 opacity-0 bg-slate-900 border border-slate-800 text-xs font-medium text-white px-4 py-3 rounded-xl flex items-center gap-2 shadow-xl transition-all duration-300 pointer-events-none">
+            <div id="toast-icon-success" class="hidden text-emerald-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <div id="toast-icon-error" class="hidden text-rose-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <span id="toast-message">Pesan notifikasi di sini.</span>
+        </div>
+
+    </div>
+
+    <!-- MAIN APP CONTROLLER SCRIPT -->
+    <script>
+        // State Management
+        let appState = {
+            user: null,
+            activeLeftTab: 'ai',
+            currentLKPD: {
+                judul: 'Sistem Organisasi Kehidupan',
+                mapel: 'Ilmu Pengetahuan Alam (IPA)',
+                kelas: 'VII / Semester Genap',
+                waktu: '2 JP (2 x 40 Menit)',
+                tahun: '2026/2027',
+                tujuan: '1. Mengidentifikasi tingkat organisasi kehidupan mulai dari sel sampai organisme.\n2. Menjelaskan fungsi organel sel secara umum.\n3. Memahami konsep keterkaitan sel, jaringan, dan organ.',
+                petunjuk: '1. Bacalah materi ringkas berikut dengan saksama sebelum mulai menjawab soal.\n2. Diskusikan jawaban soal-soal latihan secara kritis bersama kelompok kerja kamu.\n3. Tuliskan jawaban akhir di tempat yang telah disediakan dengan pulpen tinta hitam.',
+                materi: 'Makhluk hidup tersusun atas unit fungsional terkecil yang disebut dengan sel. Di dalam sel terdapat organel yang memiliki fungsi spesifik (seperti mitokondria untuk respirasi dan kloroplas untuk fotosintesis). Kumpulan sel yang memiliki bentuk dan fungsi sama membentuk suatu jaringan (misalnya jaringan otot, jaringan epitel). Jaringan tersebut berkumpul dan bersinergi membangun organ (seperti jantung, paru-paru, daun). Sistem organ terbentuk dari kerja sama beberapa organ yang saling terhubung untuk mendukung fungsi kehidupan organisme secara utuh.',
+                soal: [
+                    {
+                        tipe: 'pg',
+                        pertanyaan: 'Urutan hierarki organisasi kehidupan dari tingkat terkecil hingga terbesar yang benar adalah...',
+                        pilihan: [
+                            'Sel - Organ - Jaringan - Sistem Organ - Organisme',
+                            'Sel - Jaringan - Organ - Sistem Organ - Organisme',
+                            'Organisme - Jaringan - Organ - Sel - Sistem Organ',
+                            'Jaringan - Sel - Organ - Sistem Organ - Organisme'
+                        ],
+                        kunci: 'B'
+                    },
+                    {
+                        tipe: 'pg',
+                        pertanyaan: 'Organel sel tumbuhan yang bertanggung jawab dalam mengonversi energi cahaya matahari menjadi energi kimia (karbohidrat) adalah...',
+                        pilihan: [
+                            'Mitokondria',
+                            'Badan Golgi',
+                            'Kloroplas',
+                            'Ribosom'
+                        ],
+                        kunci: 'C'
+                    },
+                    {
+                        tipe: 'esai',
+                        pertanyaan: 'Jelaskan perbedaan struktur dan fungsi mendasar antara sel hewan dengan sel tumbuhan!',
+                        kunci: ''
+                    }
+                ]
+            }
+        };
+
+        const CORRECT_ACCESS_CODE = "LKPDAI26";
+
+        // Initializer
+        window.onload = function() {
+            const savedUser = localStorage.getItem('lkpd_user');
+            if (savedUser) {
+                appState.user = JSON.parse(savedUser);
+                showDashboard();
+            }
+            syncFormAndPreview();
+        };
+
+        // Login Handler
+        function handleLogin(event) {
+            event.preventDefault();
+            const name = document.getElementById('user-name').value.trim();
+            const email = document.getElementById('user-email').value.trim();
+            const code = document.getElementById('access-code').value.trim();
+            const errorDiv = document.getElementById('login-error');
+
+            if (code !== CORRECT_ACCESS_CODE) {
+                errorDiv.classList.remove('hidden');
+                errorDiv.textContent = "Kode akses salah! Hubungi tim admin atau masukkan kode 'LKPDAI26'.";
+                showToast("Akses Ditolak", "error");
+                return;
+            }
+
+            appState.user = { name, email };
+            localStorage.setItem('lkpd_user', JSON.stringify(appState.user));
+            
+            showToast("Berhasil Masuk!", "success");
+            showDashboard();
+        }
+
+        // Show Dashboard Interface
+        function showDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+            document.getElementById('display-user-name').textContent = appState.user.name;
+            document.getElementById('view-footer-user').textContent = "Oleh: " + appState.user.name;
+            
+            populateFormFromState();
+            syncFormAndPreview();
+        }
+
+        // Logout Handler
+        function handleLogout() {
+            appState.user = null;
+            localStorage.removeItem('lkpd_user');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('main-dashboard').classList.add('hidden');
+            showToast("Keluar berhasil", "success");
+        }
+
+        // Left Panel Tabs Controller
+        function switchLeftTab(tab) {
+            appState.activeLeftTab = tab;
+            const tabAI = document.getElementById('tab-btn-ai');
+            const tabManual = document.getElementById('tab-btn-manual');
+            const panelAI = document.getElementById('panel-ai');
+            const panelManual = document.getElementById('panel-manual');
+
+            if (tab === 'ai') {
+                tabAI.className = "flex-1 flex items-center justify-center space-x-2 py-2.5 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all";
+                tabManual.className = "flex-1 flex items-center justify-center space-x-2 py-2.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
+                panelAI.classList.remove('hidden');
+                panelManual.classList.add('hidden');
+            } else {
+                tabManual.className = "flex-1 flex items-center justify-center space-x-2 py-2.5 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all";
+                tabAI.className = "flex-1 flex items-center justify-center space-x-2 py-2.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
+                panelManual.classList.remove('hidden');
+                panelAI.classList.add('hidden');
+                populateFormFromState();
+            }
+        }
+
+        // Use suggestion template
+        function useTemplate(text) {
+            document.getElementById('ai-prompt').value = "Buat LKPD " + text;
+            showToast("Templat disalin ke input!", "success");
+        }
+
+        // Populate manual editor form fields
+        function populateFormFromState() {
+            document.getElementById('form-judul').value = appState.currentLKPD.judul || '';
+            document.getElementById('form-mapel').value = appState.currentLKPD.mapel || '';
+            document.getElementById('form-kelas').value = appState.currentLKPD.kelas || '';
+            document.getElementById('form-waktu').value = appState.currentLKPD.waktu || '';
+            document.getElementById('form-tahun').value = appState.currentLKPD.tahun || '';
+            document.getElementById('form-tujuan').value = appState.currentLKPD.tujuan || '';
+            document.getElementById('form-materi').value = appState.currentLKPD.materi || '';
+            document.getElementById('form-petunjuk').value = appState.currentLKPD.petunjuk || '';
+            
+            renderEditorQuestions();
+        }
+
+        // Render Question list inside manual editor
+        function renderEditorQuestions() {
+            const listContainer = document.getElementById('questions-list');
+            listContainer.innerHTML = '';
+
+            appState.currentLKPD.soal.forEach((q, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = "p-3 bg-slate-900/60 border border-slate-800 rounded-lg space-y-2 relative";
+                
+                const delBtn = `<button onclick="removeQuestion(${index})" class="absolute top-2 right-2 text-rose-400 hover:text-rose-300 p-1" title="Hapus Soal">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>`;
+
+                let cardContent = `
+                    <div class="flex items-center gap-1.5 pr-6">
+                        <span class="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-slate-800 text-slate-300 border border-slate-700 rounded">${index + 1}</span>
+                        <span class="text-xs font-semibold text-slate-400">${q.tipe === 'pg' ? 'Pilihan Ganda' : 'Pertanyaan Esai'}</span>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 mb-1">Pertanyaan</label>
+                        <textarea oninput="updateQuestionText(${index}, this.value)" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-white focus:outline-none focus:border-blue-500">${q.pertanyaan}</textarea>
+                    </div>
+                `;
+
+                if (q.tipe === 'pg') {
+                    cardContent += `<div class="space-y-1">
+                        <label class="block text-[10px] text-slate-500">Pilihan Jawaban</label>
+                        ${q.pilihan.map((opt, optIndex) => `
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs text-slate-400 font-bold">${String.fromCharCode(65 + optIndex)}.</span>
+                                <input type="text" value="${opt}" oninput="updateQuestionOption(${index}, ${optIndex}, this.value)" class="flex-1 bg-slate-950 border border-slate-800 rounded p-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                        `).join('')}
+                    </div>`;
+                }
+
+                questionCard.innerHTML = cardContent + delBtn;
+                listContainer.appendChild(questionCard);
+            });
+        }
+
+        // Live synchronizer from manual editor inputs to live printable preview
+        function updateLKPDFromForm() {
+            appState.currentLKPD.judul = document.getElementById('form-judul').value;
+            appState.currentLKPD.mapel = document.getElementById('form-mapel').value;
+            appState.currentLKPD.kelas = document.getElementById('form-kelas').value;
+            appState.currentLKPD.waktu = document.getElementById('form-waktu').value;
+            appState.currentLKPD.tahun = document.getElementById('form-tahun').value;
+            appState.currentLKPD.tujuan = document.getElementById('form-tujuan').value;
+            appState.currentLKPD.materi = document.getElementById('form-materi').value;
+            appState.currentLKPD.petunjuk = document.getElementById('form-petunjuk').value;
+
+            syncFormAndPreview();
+        }
+
+        // Syncs preview panel content with the local variables
+        function syncFormAndPreview() {
+            document.getElementById('view-judul').textContent = appState.currentLKPD.judul || 'JUDUL BELUM DIISI';
+            document.getElementById('view-mapel').textContent = appState.currentLKPD.mapel || '-';
+            document.getElementById('view-kelas').textContent = appState.currentLKPD.kelas || '-';
+            document.getElementById('view-waktu').textContent = appState.currentLKPD.waktu || '-';
+            document.getElementById('view-tahun').textContent = appState.currentLKPD.tahun || '-';
+            
+            document.getElementById('view-tujuan').innerHTML = appState.currentLKPD.tujuan ? formatText(appState.currentLKPD.tujuan) : '<em>Belum ada tujuan pembelajaran</em>';
+            document.getElementById('view-petunjuk').innerHTML = appState.currentLKPD.petunjuk ? formatText(appState.currentLKPD.petunjuk) : '<em>Belum ada petunjuk belajar</em>';
+            document.getElementById('view-materi').innerHTML = appState.currentLKPD.materi ? formatText(appState.currentLKPD.materi) : '<em>Belum ada ringkasan materi</em>';
+
+            const previewQuestionsDiv = document.getElementById('view-questions');
+            previewQuestionsDiv.innerHTML = '';
+
+            if (!appState.currentLKPD.soal || appState.currentLKPD.soal.length === 0) {
+                previewQuestionsDiv.innerHTML = '<p class="text-slate-400 italic">Belum ada latihan soal.</p>';
+                return;
+            }
+
+            const pgQuestions = appState.currentLKPD.soal.filter(q => q.tipe === 'pg');
+            const essayQuestions = appState.currentLKPD.soal.filter(q => q.tipe === 'esai');
+
+            let qCounter = 1;
+
+            if (pgQuestions.length > 0) {
+                const pgHeader = document.createElement('h3');
+                pgHeader.className = "font-extrabold text-xs mb-2 tracking-wide uppercase text-slate-800";
+                pgHeader.textContent = "A. Pilihan Ganda";
+                previewQuestionsDiv.appendChild(pgHeader);
+
+                pgQuestions.forEach((q) => {
+                    const qElem = document.createElement('div');
+                    qElem.className = "mb-4 pl-1";
+                    
+                    let choicesHTML = '';
+                    q.pilihan.forEach((choice, i) => {
+                        choicesHTML += `
+                            <div class="flex items-start ml-4 mt-1">
+                                <span class="font-bold w-5">${String.fromCharCode(65 + i)}.</span>
+                                <span class="flex-1">${choice}</span>
+                            </div>
+                        `;
+                    });
+
+                    qElem.innerHTML = `
+                        <div class="flex items-start">
+                            <span class="font-bold w-5">${qCounter}.</span>
+                            <span class="flex-1 text-justify">${q.pertanyaan}</span>
+                        </div>
+                        ${choicesHTML}
+                    `;
+                    previewQuestionsDiv.appendChild(qElem);
+                    qCounter++;
+                });
+            }
+
+            if (essayQuestions.length > 0) {
+                const esHeader = document.createElement('h3');
+                esHeader.className = "font-extrabold text-xs mt-4 mb-2 tracking-wide uppercase text-slate-800";
+                esHeader.textContent = "B. Pertanyaan Esai Jawab Singkat";
+                previewQuestionsDiv.appendChild(esHeader);
+
+                essayQuestions.forEach((q) => {
+                    const qElem = document.createElement('div');
+                    qElem.className = "mb-6 pl-1";
+                    qElem.innerHTML = `
+                        <div class="flex items-start">
+                            <span class="font-bold w-5">${qCounter}.</span>
+                            <span class="flex-1 text-justify">${q.pertanyaan}</span>
+                        </div>
+                        <div class="mt-2 ml-5 border-b border-dashed border-slate-300 h-6"></div>
+                        <div class="mt-2 ml-5 border-b border-dashed border-slate-300 h-6"></div>
+                        <div class="mt-2 ml-5 border-b border-dashed border-slate-300 h-6"></div>
+                    `;
+                    previewQuestionsDiv.appendChild(qElem);
+                    qCounter++;
+                });
+            }
+        }
+
+        function formatText(text) {
+            return text.replace(/\n/g, '<br>');
+        }
+
+        function updateQuestionText(index, value) {
+            appState.currentLKPD.soal[index].pertanyaan = value;
+            syncFormAndPreview();
+        }
+
+        function updateQuestionOption(questionIndex, optionIndex, value) {
+            appState.currentLKPD.soal[questionIndex].pilihan[optionIndex] = value;
+            syncFormAndPreview();
+        }
+
+        function removeQuestion(index) {
+            appState.currentLKPD.soal.splice(index, 1);
+            renderEditorQuestions();
+            syncFormAndPreview();
+            showToast("Soal berhasil dihapus", "success");
+        }
+
+        function addQuestion(type) {
+            if (type === 'pg') {
+                appState.currentLKPD.soal.push({
+                    tipe: 'pg',
+                    pertanyaan: 'Masukkan pertanyaan pilihan ganda baru?',
+                    pilihan: ['Opsi A', 'Opsi B', 'Opsi C', 'Opsi D'],
+                    kunci: 'A'
+                });
+            } else {
+                appState.currentLKPD.soal.push({
+                    tipe: 'esai',
+                    pertanyaan: 'Masukkan pertanyaan esai baru?',
+                    kunci: ''
+                });
+            }
+            renderEditorQuestions();
+            syncFormAndPreview();
+            showToast("Soal baru ditambahkan!", "success");
+        }
+
+        function clearCurrentLKPD() {
+            appState.currentLKPD = {
+                judul: '',
+                mapel: '',
+                kelas: '',
+                waktu: '',
+                tahun: '',
+                tujuan: '',
+                petunjuk: '',
+                materi: '',
+                soal: []
+            };
+            populateFormFromState();
+            syncFormAndPreview();
+            showToast("Lembar kerja dikosongkan", "success");
+        }
+
+        function loadSampleDraft() {
+            appState.currentLKPD = {
+                judul: 'Fotosintesis & Respirasi Tumbuhan',
+                mapel: 'Biologi IPA',
+                kelas: 'VIII / Ganjil',
+                waktu: '2 x 45 Menit',
+                tahun: '2026/2027',
+                tujuan: '1. Mengidentifikasi reaksi kimia fotosintesis secara sederhana.\n2. Memahami peranan klorofil dan cahaya matahari dalam proses fotosintesis.\n3. Membuktikan zat hasil fotosintesis melalui praktikum teoretis.',
+                petunjuk: '1. Diskusikan dan jawablah pertanyaan di bawah ini bersama teman sebangku.\n2. Jawablah soal pilihan ganda dengan memberikan tanda silang (X).\n3. Berikan uraian argumen yang sistematis untuk soal esai.',
+                materi: 'Fotosintesis merupakan mekanisme pembuatan karbohidrat dari air (H2O) dan karbon dioksida (CO2) menggunakan bantuan cahaya matahari yang ditangkap pigmen hijau bernama klorofil. Proses respirasi sel sebaliknya, menggunakan senyawa organik hasil proses asimilasi untuk menghasilkan energi mekanis pendukung gerak tumbuhan.',
+                soal: [
+                    {
+                        tipe: 'pg',
+                        pertanyaan: 'Gas manakah yang diserap secara langsung oleh kloroplas dari udara bebas untuk fotosintesis?',
+                        pilihan: ['Oksigen (O2)', 'Karbon Dioksida (CO2)', 'Nitrogen (N2)', 'Hidrogen (H2)'],
+                        kunci: 'B'
+                    },
+                    {
+                        tipe: 'esai',
+                        pertanyaan: 'Mengapa cahaya matahari mutlak dibutuhkan oleh tumbuhan hijau? Tuliskan analisis fungsionalmu!',
+                        kunci: ''
+                    }
+                ]
+            };
+            populateFormFromState();
+            syncFormAndPreview();
+            showToast("Draft contoh berhasil dimuat!", "success");
+        }
+
+        // ================= GEMINI API UTILITY WITH RETRY =================
+
+        // Global robust LLM API dispatcher with exponential backoff & schema support
+        async function fetchGeminiLLM(promptText, systemInstructions, responseSchema = null) {
+            const apiKey = ""; // Left empty as per environment rules
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: promptText }] }],
+                systemInstruction: { parts: [{ text: systemInstructions }] }
+            };
+
+            // Inject structured JSON if required
+            if (responseSchema) {
+                payload.generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                };
+            }
+
+            let attempt = 0;
+            const delays = [1000, 2000, 4000, 8000, 16000];
+
+            while (attempt < 5) {
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Gemini API returned code ${res.status}`);
+                    }
+
+                    const resJson = await res.json();
+                    return resJson.candidates?.[0]?.content?.parts?.[0]?.text;
+                } catch (err) {
+                    attempt++;
+                    if (attempt >= 5) {
+                        throw new Error("Gagal terhubung ke Gemini API setelah 5 kali percobaan. Periksa koneksi internet Anda.");
+                    }
+                    await new Promise(resolve => setTimeout(resolve, delays[attempt - 1]));
+                }
+            }
+        }
+
+        // ================= FEATURE 1: AI GENERATE LKPD =================
+
+        async function generateLKPDWithAI() {
+            const promptInput = document.getElementById('ai-prompt').value.trim();
+            if (!promptInput) {
+                showToast("Tuliskan topik atau konsep materi yang ingin dibuat!", "error");
+                return;
+            }
+
+            const btn = document.getElementById('btn-generate');
+            const btnText = document.getElementById('generate-btn-text');
+            const loaderContainer = document.getElementById('ai-loading-container');
+            const loadingBar = document.getElementById('ai-loading-bar');
+            const loadingStatus = document.getElementById('ai-loading-status');
+            const loadingTimer = document.getElementById('ai-loading-timer');
+
+            btn.disabled = true;
+            btnText.textContent = "Sedang Merancang...";
+            loaderContainer.classList.remove('hidden');
+            loadingBar.style.width = "10%";
+            
+            let seconds = 0;
+            const timerInterval = setInterval(() => {
+                seconds++;
+                loadingTimer.textContent = `${seconds}s`;
+                if (seconds === 3) {
+                    loadingBar.style.width = "40%";
+                    loadingStatus.innerHTML = `Menyusun konten ringkasan materi...`;
+                }
+                if (seconds === 7) {
+                    loadingBar.style.width = "80%";
+                    loadingStatus.innerHTML = `Membuat latihan soal kognitif...`;
+                }
+            }, 1000);
+
+            const systemPrompt = `Kamu adalah seorang ahli kurikulum pendidikan Indonesia kelas 1-12. Rancang dokumen Lembar Kerja Peserta Didik (LKPD) yang sangat rapi, menantang, mendalam dan berpedoman pada kaidah asesmen modern dalam format JSON terstruktur Bahasa Indonesia. Pastikan soal PG memiliki tepat 4 pilihan jawaban (pilihan) dan kunci wajib diisi antara 'A', 'B', 'C', atau 'D'.`;
+
+            const lkpdSchema = {
+                type: "OBJECT",
+                properties: {
+                    judul: { type: "STRING" },
+                    mapel: { type: "STRING" },
+                    kelas: { type: "STRING" },
+                    waktu: { type: "STRING" },
+                    tahun: { type: "STRING" },
+                    tujuan: { type: "STRING" },
+                    materi: { type: "STRING" },
+                    petunjuk: { type: "STRING" },
+                    soal: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                tipe: { type: "STRING", description: "pilih 'pg' atau 'esai'" },
+                                pertanyaan: { type: "STRING" },
+                                pilihan: {
+                                    type: "ARRAY",
+                                    items: { type: "STRING" },
+                                    description: "Hanya untuk 'pg'. Wajib isi 4 opsi."
+                                },
+                                kunci: { type: "STRING", description: "Untuk PG: 'A','B','C','D'. Untuk esai: diisi rangkuman kunci jawaban." }
+                            },
+                            required: ["tipe", "pertanyaan"]
+                        }
+                    }
+                },
+                required: ["judul", "mapel", "kelas", "tujuan", "materi", "petunjuk", "soal"]
+            };
+
+            try {
+                const responseText = await fetchGeminiLLM(promptInput, systemPrompt, lkpdSchema);
+                const parsedData = JSON.parse(responseText);
+
+                appState.currentLKPD = parsedData;
+
+                loadingBar.style.width = "100%";
+                loadingStatus.textContent = "Selesai!";
+                showToast("Draf LKPD baru berhasil dibuat!", "success");
+
+                setTimeout(() => {
+                    clearInterval(timerInterval);
+                    loaderContainer.classList.add('hidden');
+                    btn.disabled = false;
+                    btnText.textContent = "Rancang Menggunakan AI";
+                    
+                    switchLeftTab('manual');
+                    populateFormFromState();
+                    syncFormAndPreview();
+                }, 800);
+
+            } catch (error) {
+                clearInterval(timerInterval);
+                loaderContainer.classList.add('hidden');
+                btn.disabled = false;
+                btnText.textContent = "Rancang Menggunakan AI";
+                
+                showToast(error.message || "Gagal menyusun LKPD secara otomatis.", "error");
+                console.error("Gemini Generation Error:", error);
+            }
+        }
+
+        // ================= FEATURE 2: AI ANSWER KEY & DISCUSSION SHEET =================
+
+        async function generateAnswersWithAI() {
+            showToast("Menghubungkan ke asisten AI...", "success");
+
+            const promptText = `Berdasarkan LKPD berikut:
+            Judul: ${appState.currentLKPD.judul}
+            Mata Pelajaran: ${appState.currentLKPD.mapel}
+            Materi: ${appState.currentLKPD.materi}
+            Daftar Soal:
+            ${JSON.stringify(appState.currentLKPD.soal, null, 2)}
+            
+            Buatkan "Dokumen Kunci Jawaban & Pembahasan Pedagogis Lengkap" untuk digunakan guru saat proses koreksi nilai. Buat pembahasan tiap soal secara detail, logis, terarah, serta berikan rubrik penskoran dasar (skor 1-100) untuk soal tipe esai.`;
+
+            const systemPrompt = `Kamu adalah instruktur penilai guru berstandar nasional. Tuliskan tanggapan dengan gaya bahasa formal, jelas, rapi, terstruktur menggunakan penomoran Markdown yang mudah dibaca. Respons wajib ditulis dalam Bahasa Indonesia.`;
+
+            try {
+                const solutionText = await fetchGeminiLLM(promptText, systemPrompt);
+                
+                document.getElementById('modal-output-title').innerHTML = `🔑 Kunci Jawaban & Pembahasan Pedagogis (AI)`;
+                
+                // Formatted output
+                document.getElementById('modal-output-body').innerHTML = `
+                    <div class="bg-indigo-950/20 border border-indigo-500/20 p-4 rounded-xl mb-4 text-xs">
+                        <strong>Informasi Guru:</strong> Lembar pembahasan ini digenerate secara khusus untuk membantu Bapak/Ibu <strong>${appState.user?.name || 'Guru Kreatif'}</strong> menyamakan persepsi penilaian kognitif siswa.
+                    </div>
+                    <div class="prose prose-invert max-w-none text-slate-300">
+                        ${solutionText.replace(/\n/g, '<br>')}
+                    </div>
+                `;
+
+                openOutputModal();
+            } catch (error) {
+                showToast("Gagal menyusun lembar pembahasan kunci jawaban.", "error");
+            }
+        }
+
+        // ================= FEATURE 3: AI DIFFERENTIATED ADAPTATION =================
+
+        let currentDiffLevelSelected = 'remedial';
+
+        function openDifferentiateModal() {
+            document.getElementById('ai-differentiate-modal').classList.remove('hidden');
+        }
+
+        function closeDifferentiateModal() {
+            document.getElementById('ai-differentiate-modal').classList.add('hidden');
+        }
+
+        async function applyDifferentiate() {
+            const selectedRadio = document.querySelector('input[name="diff-level"]:checked');
+            if (!selectedRadio) return;
+            
+            currentDiffLevelSelected = selectedRadio.value;
+            closeDifferentiateModal();
+            showToast(`Mengadaptasi materi ke tipe ${currentDiffLevelSelected}...`, "success");
+
+            const promptText = `Ubah/modifikasi dokumen LKPD yang sedang aktif ini ke tingkat kompleksitas: "${currentDiffLevelSelected.toUpperCase()}".
+            
+            Jika remedial:
+            - Ringkas materi jadi lebih mudah dicerna.
+            - Soal pilihan ganda & esai dipermudah ke ranah kognitif C1-C2 (Pemahaman Dasar).
+            
+            Jika pengayaan:
+            - Perluas materi dengan studi kasus atau problem-solving nyata.
+            - Tingkatkan semua latihan soal ke level HOTS C4-C6 (Analisis/Evaluasi).
+            
+            Ini data LKPD saat ini:
+            ${JSON.stringify(appState.currentLKPD, null, 2)}`;
+
+            const systemPrompt = `Ubah konten sesuai permintaan kompleksitas yang diajukan. Pertahankan data dasar lainnya seperti mapel, waktu, dan alokasi semester. Kembalikan respons dalam format JSON murni berstandar bahasa Indonesia dengan struktur yang sama persis seperti schema masukan.`;
+
+            const lkpdSchema = {
+                type: "OBJECT",
+                properties: {
+                    judul: { type: "STRING" },
+                    mapel: { type: "STRING" },
+                    kelas: { type: "STRING" },
+                    waktu: { type: "STRING" },
+                    tahun: { type: "STRING" },
+                    tujuan: { type: "STRING" },
+                    materi: { type: "STRING" },
+                    petunjuk: { type: "STRING" },
+                    soal: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                tipe: { type: "STRING" },
+                                pertanyaan: { type: "STRING" },
+                                pilihan: {
+                                    type: "ARRAY",
+                                    items: { type: "STRING" }
+                                },
+                                kunci: { type: "STRING" }
+                            },
+                            required: ["tipe", "pertanyaan"]
+                        }
+                    }
+                },
+                required: ["judul", "mapel", "kelas", "tujuan", "materi", "petunjuk", "soal"]
+            };
+
+            try {
+                const responseText = await fetchGeminiLLM(promptText, systemPrompt, lkpdSchema);
+                const adaptedData = JSON.parse(responseText);
+
+                appState.currentLKPD = adaptedData;
+                
+                // Refresh form and live sheet
+                populateFormFromState();
+                syncFormAndPreview();
+                showToast(`Sukses mengadaptasi LKPD untuk ${currentDiffLevelSelected}!`, "success");
+            } catch (err) {
+                showToast("Gagal menyesuaikan kompleksitas materi.", "error");
+                console.error("Differentiate Error:", err);
+            }
+        }
+
+        // ================= FEATURE 4: AI MEDIA & ICEBREAKER RECOMMENDATIONS =================
+
+        async function generateMediaRecommendations() {
+            showToast("Menganalisis kebutuhan media interaktif...", "success");
+
+            const promptText = `Berdasarkan LKPD dengan judul "${appState.currentLKPD.judul}" untuk pelajaran "${appState.currentLKPD.mapel}" tingkat "${appState.currentLKPD.kelas}".
+            Rangkuman materi: "${appState.currentLKPD.materi}".
+            
+            Rekomendasikan:
+            1. Aktivitas pembelajaran interaktif atau eksperimen fisik berkelompok yang seru dan hemat biaya.
+            2. Pertanyaan Pemantik (Warm-up questions) untuk mengaktifkan pemikiran awal siswa sebelum belajar.
+            3. Rekomendasi media digital visual seperti video YouTube atau simulasi web (PHET/Geogebra/dsb) lengkap dengan usulan kata kunci pencarian yang tepat.
+            4. Ide kuis interaktif singkat (Icebreaker singkat di tengah pembelajaran).`;
+
+            const systemPrompt = `Kamu adalah perancang instruksional kreatif kurikulum merdeka. Sajikan rekomendasi dalam bentuk poin-poin taktis, inspiratif, dan siap dipraktikkan langsung di kelas oleh guru. Gunakan bahasa Indonesia yang ramah, sopan, dan profesional.`;
+
+            try {
+                const recsText = await fetchGeminiLLM(promptText, systemPrompt);
+
+                document.getElementById('modal-output-title').innerHTML = `🎯 Rekomendasi Media & Aktivitas Kreatif (AI)`;
+                document.getElementById('modal-output-body').innerHTML = `
+                    <div class="bg-emerald-950/20 border border-emerald-500/20 p-4 rounded-xl mb-4 text-xs">
+                        <strong>Rekomendasi Eksklusif:</strong> Ide-ide pembelajaran kreatif ini disinkronisasikan secara otomatis dengan kurikulum LKPD Anda agar suasana kelas terasa seru, interaktif, dan tidak membosankan.
+                    </div>
+                    <div class="prose prose-invert max-w-none text-slate-300">
+                        ${recsText.replace(/\n/g, '<br>')}
+                    </div>
+                `;
+
+                openOutputModal();
+            } catch (err) {
+                showToast("Gagal merumuskan rekomendasi aktivitas.", "error");
+            }
+        }
+
+        // ================= GENERAL MODAL OPERATIONS =================
+
+        function openOutputModal() {
+            document.getElementById('ai-output-modal').classList.remove('hidden');
+        }
+
+        function closeOutputModal() {
+            document.getElementById('ai-output-modal').classList.add('hidden');
+        }
+
+        function copyModalContent() {
+            const bodyDiv = document.getElementById('modal-output-body');
+            const range = document.createRange();
+            range.selectNode(bodyDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            
+            try {
+                document.execCommand('copy');
+                showToast("Isi pembahasan berhasil disalin!", "success");
+            } catch (err) {
+                showToast("Gagal menyalin isi pembahasan.", "error");
+            }
+            window.getSelection().removeAllRanges();
+        }
+
+        // Display Custom Toast Notifications
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const msgSpan = document.getElementById('toast-message');
+            const iconSuccess = document.getElementById('toast-icon-success');
+            const iconError = document.getElementById('toast-icon-error');
+
+            msgSpan.textContent = message;
+
+            if (type === 'success') {
+                iconSuccess.classList.remove('hidden');
+                iconError.classList.add('hidden');
+                toast.className = toast.className.replace('border-rose-500/20', 'border-emerald-500/20');
+            } else {
+                iconError.classList.remove('hidden');
+                iconSuccess.classList.add('hidden');
+                toast.className = toast.className.replace('border-emerald-500/20', 'border-rose-500/20');
+            }
+
+            toast.classList.remove('translate-y-12', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-12', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
+        // Copy plain text content of the active LKPD to clipboard
+        function copyToClipboard() {
+            let plainText = `LEMBAR KERJA PESERTA DIDIK (LKPD)\n`;
+            plainText += `Judul: ${appState.currentLKPD.judul}\n`;
+            plainText += `Mata Pelajaran: ${appState.currentLKPD.mapel}\n`;
+            plainText += `Kelas/Semester: ${appState.currentLKPD.kelas}\n`;
+            plainText += `Alokasi Waktu: ${appState.currentLKPD.waktu}\n`;
+            plainText += `Tahun Ajaran: ${appState.currentLKPD.tahun}\n\n`;
+            plainText += `I. TUJUAN PEMBELAJARAN\n${appState.currentLKPD.tujuan}\n\n`;
+            plainText += `II. PETUNJUK BELAJAR\n${appState.currentLKPD.petunjuk}\n\n`;
+            plainText += `III. RINGKASAN MATERI\n${appState.currentLKPD.materi}\n\n`;
+            plainText += `IV. TUGAS DAN SOAL LATIHAN\n`;
+            
+            appState.currentLKPD.soal.forEach((q, idx) => {
+                plainText += `${idx+1}. ${q.pertanyaan}\n`;
+                if (q.tipe === 'pg' && q.pilihan) {
+                    q.pilihan.forEach((opt, oIdx) => {
+                        plainText += `   ${String.fromCharCode(65 + oIdx)}. ${opt}\n`;
+                    });
+                }
+                plainText += `\n`;
+            });
+
+            const dummyTextArea = document.createElement("textarea");
+            dummyTextArea.value = plainText;
+            document.body.appendChild(dummyTextArea);
+            dummyTextArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast("Teks LKPD berhasil disalin ke clipboard!", "success");
+            } catch (err) {
+                showToast("Gagal menyalin teks.", "error");
+            }
+            
+            document.body.removeChild(dummyTextArea);
+        }
+
+        // Export data to raw JSON
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState.currentLKPD, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            
+            const cleanTitle = (appState.currentLKPD.judul || 'lkpd-draft').toLowerCase().replace(/[^a-z0-9]/gi, '_');
+            downloadAnchor.setAttribute("download", `${cleanTitle}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Draft berhasil diunduh sebagai JSON!", "success");
+        }
+
+        function triggerUploadJSON() {
+            document.getElementById('json-file-input').click();
+        }
+
+        // Import local backup JSON file
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    if (parsedData.judul && parsedData.soal) {
+                        appState.currentLKPD = parsedData;
+                        populateFormFromState();
+                        syncFormAndPreview();
+                        showToast("Impor data sukses!", "success");
+                    } else {
+                        showToast("Format JSON LKPD tidak valid.", "error");
+                    }
+                } catch (err) {
+                    showToast("Gagal membaca file JSON.", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Printing / PDF Saver Engine
+        function printDocument() {
+            const previewContent = document.getElementById('lkpd-preview-page').innerHTML;
+            const printSheet = document.getElementById('print-sheet');
+            
+            printSheet.innerHTML = previewContent;
+            window.print();
+        }
+    </script>
+</body>
+</html>
